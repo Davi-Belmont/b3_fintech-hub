@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createFinanceTables } from './models/financeModel';
 import financeRoutes  from './routes/financeRoutes';
+import { consumeUserCreatedQueue } from './rabbitmq';
 
 dotenv.config();
 
@@ -24,4 +25,5 @@ app.use('/finance',financeRoutes);
 app.listen(PORT, async () => {
   console.log(` Finance Service rodando na porta ${PORT}`);
   await createFinanceTables();
+  await consumeUserCreatedQueue();
 });

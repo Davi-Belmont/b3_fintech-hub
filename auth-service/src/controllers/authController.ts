@@ -2,6 +2,7 @@ import { Request , Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
+import {publishUserCreated} from '../rabbitmq';
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -24,6 +25,13 @@ export const register = async (req:Request, res:Response):Promise<void> => {
       'INSERT INTO users (name, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING id, name, email, phone, created_at',
       [name, email, hashedPassword, phone]
     );
+
+    const userCreated = newUser.rows[0];
+
+    await publishUserCreated({
+        userId: userCreated.id,
+        email: userCreated.email
+    })
 
     res.status(201).json({
         message: 'Usuário criado com sucesso!',
